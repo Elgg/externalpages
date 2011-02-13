@@ -1,49 +1,30 @@
 <?php
-/**
- * Elgg index page for web-based applications
- *
- * @package Elgg
- * @subpackage Core
- */
+	/**
+	 * Elgg External pages
+	 * 
+	 * @package ElggExpages
+	 */
 
-/**
- * Start the Elgg engine
- */
-require_once(dirname(__FILE__) . "/engine/start.php");
+	require_once(dirname(dirname(dirname(__FILE__))) . "/engine/start.php");
 
-// allow plugins to override the front page (return true to stop this front page code)
-if (elgg_trigger_plugin_hook('index', 'system', null, FALSE) != FALSE) {
-	exit;
-}
-
-if (elgg_is_logged_in()) {
-	forward('pg/activity/');
-}
-
-//Load the front page
-$title = elgg_view_title(elgg_echo('content:latest'));
-elgg_set_context('search');
-$offset = (int)get_input('offset', 0);
-$options = array(
-		'limit' => 10,
-		'offset' => $offset,
-		'full_view' => FALSE,
-		'allowed_types' => array('object','group')
-);
-
-$activity = elgg_list_registered_entities($options);
-elgg_set_context('main');
-
-global $autofeed;
-$autofeed = FALSE;
-
-// if drop-down login in header option not selected
-$login_box = elgg_view('core/account/login_box');
-
-$content = $title . $activity;
-$params = array(
-		'content' => $content,
-		'sidebar' => $login_box
-);
-$body = elgg_view_layout('one_sidebar', $params);
-echo elgg_view_page(null, $body);
+	admin_gatekeeper();
+	set_context('admin');
+	$type = get_input('type'); //the type of page e.g about, terms etc
+	if(!$type)
+		$type = "front"; //default to the frontpage
+	
+	//display the title
+	$title = elgg_view_title(elgg_echo('expages'));
+	
+	// Display the correct form
+	if($type == "front")
+		$edit = elgg_view('expages/forms/editfront');
+	else
+		$edit = elgg_view('expages/forms/edit', array('type' => $type));
+		
+		// Display the menu
+	$body = elgg_view('page_elements/contentwrapper',array('body' => elgg_view('expages/menu', array('type' => $type)).$edit));
+		
+	// Display
+	page_draw(elgg_echo('expages'),elgg_view_layout("two_column_left_sidebar", '', $title . $body));
+?>
